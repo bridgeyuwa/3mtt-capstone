@@ -1,0 +1,22 @@
+.header-nav {
+  background: #181818;
+  display: flex;
+  align-items: center;
+  padding: 1em 2em;
+  justify-content: space-between;
+  box-shadow: 0 0 10px #000a;
+}
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #e50914;
+}
+.header-links {
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+.logout-btn {
+  background: #444;
+  color: #fff;
+}

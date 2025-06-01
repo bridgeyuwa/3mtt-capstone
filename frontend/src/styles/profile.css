@@ -1,0 +1,21 @@
+.profile-container {
+  max-width: 400px;
+  margin: 5em auto;
+  background: #1e1e1e;
+  padding: 2em 2.5em;
+  border-radius: 8px;
+  box-shadow: 0 0 18px #0008;
+  text-align: center;
+}
+.profile-container button {
+  margin: 0.5em 0.5em 0.5em 0;
+}
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 1em 0;
+}
+.profile-form input {
+  margin-bottom: 1em;
+}

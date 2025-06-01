@@ -1,0 +1,37 @@
+.details-container {
+  max-width: 700px;
+  margin: 4em auto;
+  display: flex;
+  gap: 2em;
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 2em;
+  box-shadow: 0 0 18px #0008;
+  flex-wrap: wrap;
+}
+.details-content {
+  flex: 1;
+}
+.details-content h2 {
+  margin-top: 0;
+}
+.fav-btn {
+  background: #444;
+  margin: 1em 0;
+}
+.review-form {
+  margin-top: 1em;
+}
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+.reviews-list {
+  margin-top: 1em;
+}
+.review {
+  background: #222;
+  margin: 0.5em 0;
+  padding: 0.5em 1em;
+  border-radius: 5px;
+}

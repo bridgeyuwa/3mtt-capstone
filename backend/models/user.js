@@ -8,10 +8,6 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: "" },
   avatar: { type: String, default: "" },
   favorites: [{ type: String }], // TMDB movie IDs
-  watchlists: [{
-    name: { type: String, required: true },
-    movies: [{ type: String }]
-  }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });

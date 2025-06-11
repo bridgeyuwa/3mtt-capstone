@@ -16,8 +16,14 @@ app.use('/api/movies', movieRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/reviews', reviewRoutes);
 
+
 app.get('/', (req, res) => {
   res.json({ status: 'Movie Recommendation App API running' });
+});
+
+app.get('/test-log', (req, res) => {
+  console.log('Test log route hit!');
+  res.send('ok');
 });
 
 const start = async () => {

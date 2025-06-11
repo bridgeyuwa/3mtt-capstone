@@ -12,6 +12,7 @@ function MovieDetails({ token }) {
   const [myReview, setMyReview] = useState('');
   const [watchlists, setWatchlists] = useState([]);
   const [message, setMessage] = useState('');
+  const [newWatchlistName, setNewWatchlistName] = useState('');
 
   useEffect(() => {
     API.get(`/movies/${id}`).then(res => setMovie(res.data));
@@ -44,10 +45,55 @@ function MovieDetails({ token }) {
     API.get(`/reviews/movie/${id}`).then(res => setReviews(res.data));
   };
 
-  const handleAddToWatchlist = async (listName) => {
+  // Check if movie is already in a watchlist
+  const isMovieInWatchlist = (wl) => Array.isArray(wl.movies) && wl.movies.includes(id);
+
+  // Add/remove movie from a watchlist (toggle) -- NOW BY _id!
+  const handleToggleWatchlist = async (watchlistId, alreadyInList) => {
     setAuthToken(token);
-    await API.put('/movies/watchlists/add', { listName, movieId: id });
-    setMessage(`Added to watchlist "${listName}"`);
+    try {
+      if (!alreadyInList) {
+        await API.put('/movies/watchlists/add', { watchlistId, movieId: id });
+        setMessage(`Added to watchlist`);
+      } else {
+        await API.put('/movies/watchlists/remove', { watchlistId, movieId: id });
+        setMessage(`Removed from watchlist`);
+      }
+      // Refresh watchlists
+      const res = await API.get('/movies/watchlists');
+      setWatchlists(res.data);
+    } catch (err) {
+      setMessage('Failed to update watchlist.');
+    }
+  };
+
+  // Delete an entire watchlist -- NOW BY _id!
+  const handleDeleteWatchlist = async (watchlistId) => {
+    setAuthToken(token);
+    try {
+      await API.delete(`/movies/watchlists/${watchlistId}`);
+      setMessage(`Watchlist deleted!`);
+      // Refresh watchlists
+      const res = await API.get('/movies/watchlists');
+      setWatchlists(res.data);
+    } catch (err) {
+      setMessage('Failed to delete watchlist.');
+    }
+  };
+
+  const handleCreateWatchlist = async (e) => {
+    e.preventDefault();
+    setAuthToken(token);
+    try {
+      await API.post('/movies/watchlists', { name: newWatchlistName });
+      setMessage(`Watchlist "${newWatchlistName}" created!`);
+      setNewWatchlistName('');
+      // Refresh the watchlists
+      const res = await API.get('/movies/watchlists');
+      setWatchlists(res.data);
+    } catch (err) {
+      setMessage('Failed to create watchlist.');
+    }
   };
 
   if (!movie) return <div>Loading...</div>;
@@ -64,22 +110,73 @@ function MovieDetails({ token }) {
         <div>Rating: {movie.vote_average}/10</div>
         <div>Genres: {movie.genres?.map(g => g.name).join(', ')}</div>
         <button onClick={handleFavorite} className="fav-btn">{fav ? "★ Remove Favorite" : "☆ Add Favorite"}</button>
+
         {token && (
           <>
             <form onSubmit={handleReview} className="review-form">
               <h4>Rate & Review</h4>
-              <input type="number" min="0" max="10" value={myRating} onChange={e => setMyRating(e.target.value)} placeholder="Rating" required />
-              <textarea value={myReview} onChange={e => setMyReview(e.target.value)} placeholder="Your review..." />
+              <input
+                type="number"
+                min="0"
+                max="10"
+                value={myRating}
+                onChange={e => setMyRating(e.target.value)}
+                placeholder="Rating"
+                required
+              />
+              <textarea
+                value={myReview}
+                onChange={e => setMyReview(e.target.value)}
+                placeholder="Your review..."
+              />
               <button type="submit">Submit</button>
             </form>
             <div>
-              <h4>Add to Watchlist</h4>
-              {watchlists.map(wl => (
-                <button key={wl.name} onClick={() => handleAddToWatchlist(wl.name)}>{wl.name}</button>
-              ))}
+              <form onSubmit={handleCreateWatchlist} className="create-watchlist-form">
+                <h4>Create New Watchlist</h4>
+                <input
+                  type="text"
+                  value={newWatchlistName}
+                  onChange={e => setNewWatchlistName(e.target.value)}
+                  placeholder="Watchlist name"
+                  required
+                />
+                <button type="submit">Create</button>
+              </form>
+              <h4>Watchlists</h4>
+              {watchlists.length === 0
+                ? <span>No watchlists found. Create one first!</span>
+                : watchlists.map(wl => {
+                  const inList = isMovieInWatchlist(wl);
+                  return (
+                    <div key={wl._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        onClick={() => handleToggleWatchlist(wl._id, inList)}
+                        className={inList ? 'in-watchlist' : ''}
+                        style={{
+                          fontWeight: inList ? 'bold' : 'normal',
+                          background: inList ? '#ffeeba' : undefined,
+                          border: inList ? '2px solid #ffc107' : undefined,
+                        }}
+                      >
+                        {inList ? '✓ ' : ''}{wl.name}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteWatchlist(wl._id)}
+                        style={{ color: 'red', marginLeft: 4 }}
+                        type="button"
+                        title="Delete this watchlist"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  );
+                })
+              }
             </div>
           </>
         )}
+
         {trailer && (
           <div>
             <h4>Trailer</h4>

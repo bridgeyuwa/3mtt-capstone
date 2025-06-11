@@ -8,6 +8,7 @@ import MovieDetails from './pages/MovieDetails';
 import Recommendations from './pages/Recommendations';
 import Social from './pages/Social';
 import Header from './components/Header';
+import Watchlists from './pages/Watchlists';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -33,6 +34,7 @@ function App() {
         <Route path="/movie/:id" element={<MovieDetails token={token} />} />
         <Route path="/social" element={token ? <Social token={token} /> : <Navigate to="/login" />} />
         <Route path="/" element={<Home token={token} />} />
+        <Route path="/watchlists" element={<Watchlists />} />
       </Routes>
     </Router>
   );

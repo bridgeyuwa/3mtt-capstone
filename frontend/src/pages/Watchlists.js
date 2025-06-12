@@ -13,19 +13,20 @@ function WatchlistPage() {
   const [editWatchlistId, setEditWatchlistId] = useState(null);
   const [editWatchlistName, setEditWatchlistName] = useState("");
 
-  // Fetch all watchlists
+  // Fetch all watchlists for the logged-in user
   const fetchWatchlists = async () => {
     setLoading(true);
+    setError("");
     try {
       const res = await axios.get(`${API_URL}/watchlists`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      // For each watchlist, fetch movie details for each movieId
+      // For each watchlist, fetch movie details for each movieId in the list
       const watchlistsWithMovies = await Promise.all(
         res.data.map(async (watchlist) => {
           const movieDetails = await Promise.all(
-            watchlist.movies.map(async (movieId) => {
+            (Array.isArray(watchlist.movies) ? watchlist.movies : []).map(async (movieId) => {
               try {
                 const response = await axios.get(
                   `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`
@@ -40,9 +41,9 @@ function WatchlistPage() {
         })
       );
       setWatchlists(watchlistsWithMovies);
-      setLoading(false);
     } catch (err) {
       setError("Failed to load watchlists.");
+    } finally {
       setLoading(false);
     }
   };
@@ -136,7 +137,7 @@ function WatchlistPage() {
         <ul>
           {watchlists.map((watchlist) => (
             <li key={watchlist._id} style={{ marginBottom: 18 }}>
-              {/* Editable name or plain text */}
+              {/* Editable name or plain text with clickable link */}
               {editWatchlistId === watchlist._id ? (
                 <>
                   <input
@@ -149,16 +150,19 @@ function WatchlistPage() {
                 </>
               ) : (
                 <>
-                  <strong style={{ fontSize: 18 }}>{watchlist.name}</strong>{" "}
+                  <Link to={`/watchlists/${watchlist._id}`} style={{ textDecoration: "none" }}>
+                    <strong style={{ fontSize: 18 }}>{watchlist.name}</strong>
+                  </Link>{" "}
                   <button onClick={() => startEditWatchlist(watchlist._id, watchlist.name)}>Rename</button>{" "}
                   <button onClick={() => handleDeleteWatchlist(watchlist._id)} style={{ color: "red" }}>Delete</button>
                 </>
               )}
+              {/* Movie previews */}
               <ul style={{ marginTop: 8 }}>
-                {watchlist.movieDetails.length === 0 ? (
+                {(watchlist.movieDetails && watchlist.movieDetails.length === 0) ? (
                   <li>No movies in this watchlist.</li>
                 ) : (
-                  watchlist.movieDetails.map((movie) => (
+                  (watchlist.movieDetails || []).map((movie) => (
                     <li key={movie.id} style={{ marginBottom: 6 }}>
                       <Link to={`/movie/${movie.id}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", color: "inherit", fontWeight: 500 }}>
                         {movie.poster_path && (

@@ -83,14 +83,7 @@ exports.getRecommendations = async (req, res) => {
   }
 };
 
-// Favorites
-// exports.addFavorite = async (req, res) => {
-//   const user = req.user;
-//   const { id } = req.params;
-//   if (!user.favorites.includes(id)) user.favorites.push(id);
-//   await user.save();
-//   res.json(user.favorites);
-// };
+
 
 exports.addFavorite = async (req, res) => {
   const userId = req.user.id || req.user._id;
@@ -104,13 +97,7 @@ exports.addFavorite = async (req, res) => {
 };
 
 
-// exports.removeFavorite = async (req, res) => {
-//   const user = req.user;
-//   const { id } = req.params;
-//   user.favorites = user.favorites.filter(mid => mid !== id);
-//   await user.save();
-//   res.json(user.favorites);
-// };
+// FIXED: Add movie to favorites
 
 exports.removeFavorite = async (req, res) => {
   const userId = req.user.id || req.user._id;

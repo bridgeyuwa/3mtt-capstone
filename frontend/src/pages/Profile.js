@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import API, { setAuthToken } from '../api/api';
 import { useParams } from 'react-router-dom';
 import '../styles/profile.css';
+import { Link } from "react-router-dom";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
@@ -20,6 +21,10 @@ export default function Profile({ token, onLogout }) {
     API.get(userId ? `/users/${userId}` : '/users/me').then(async res => {
       setUser(res.data);
       setForm({ bio: res.data.bio, avatar: res.data.avatar });
+
+      // Use populated followers/following directly from user object
+      setFollowers(res.data.followers || []);
+      setFollowing(res.data.following || []);
 
       // Fetch favorite movie details from TMDB
       if (res.data.favorites && res.data.favorites.length > 0) {
@@ -40,10 +45,11 @@ export default function Profile({ token, onLogout }) {
       }
     });
 
-    if (userId) {
-      API.get(`/social/followers/${userId}`).then(res => setFollowers(res.data));
-      API.get(`/social/following/${userId}`).then(res => setFollowing(res.data));
-    }
+    // REMOVE these lines:
+    // if (userId) {
+    //   API.get(`/social/followers/${userId}`).then(res => setFollowers(res.data));
+    //   API.get(`/social/following/${userId}`).then(res => setFollowing(res.data));
+    // }
   }, [token, userId]);
 
   const handleUpdate = async (e) => {
@@ -67,8 +73,8 @@ export default function Profile({ token, onLogout }) {
       <button onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit Profile"}</button>
       {editing && (
         <form onSubmit={handleUpdate} className="profile-form">
-          <input value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Bio" />
-          <input value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))} placeholder="Avatar URL" />
+          Edit Bio: <input value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Bio" />
+          Edit Avatar URL: <input value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))} placeholder="Avatar URL" />
           <button type="submit">Save</button>
         </form>
       )}
@@ -77,37 +83,37 @@ export default function Profile({ token, onLogout }) {
       <ul>
         {(favoriteMovies.length > 0)
           ? favoriteMovies.map(m => (
-              <li key={m.id}>
-                <a href={`/movie/${m.id}`} style={{textDecoration: 'none', color: 'inherit'}}>
-                  {m.title || m.name || m.original_title || 'Unknown Title'}
-                  {m.poster_path && (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-                      alt={m.title || m.name}
-                      style={{ verticalAlign: 'middle', marginLeft: 8, height: 50 }}
-                    />
-                  )}
-                </a>
-              </li>
-            ))
+            <li key={m.id}>
+              <a href={`/movie/${m.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                {m.title || m.name || m.original_title || 'Unknown Title'}
+                {m.poster_path && (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
+                    alt={m.title || m.name}
+                    style={{ verticalAlign: 'middle', marginLeft: 8, height: 50 }}
+                  />
+                )}
+              </a>
+            </li>
+          ))
           // fallback: show IDs if fetch fails
           : (user.favorites && user.favorites.length > 0
-              ? user.favorites.map(f => <li key={f}>{f}</li>)
-              : <li>No favorites yet.</li>
-            )
+            ? user.favorites.map(f => <li key={f}>{f}</li>)
+            : <li>No favorites yet.</li>
+          )
         }
       </ul>
       <h3>Watchlists</h3>
-<ul>
-  {(user.watchlists && user.watchlists.length > 0)
-    ? user.watchlists.map(wl => (
-        <li key={wl._id || wl.name}>
-          {wl.name}
-        </li>
-      ))
-    : <li>No watchlists yet.</li>
-  }
-</ul>
+      <ul>
+        {user.watchlists && user.watchlists.length > 0
+          ? user.watchlists.map(wl => (
+            <li key={wl._id || wl.name}>
+              <Link to={`/watchlists/${wl._id}`}>{wl.name}</Link>
+            </li>
+          ))
+          : <li>No watchlists yet.</li>
+        }
+      </ul>
       <h3>Followers: {followers.length} | Following: {following.length}</h3>
       <div>
         <b>Followers:</b> {followers.map(f => f.username).join(', ')}

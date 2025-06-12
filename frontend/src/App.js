@@ -9,6 +9,8 @@ import Recommendations from './pages/Recommendations';
 import Social from './pages/Social';
 import Header from './components/Header';
 import Watchlists from './pages/Watchlists';
+import WatchlistDetails from './pages/WatchlistDetails';
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -35,6 +37,7 @@ function App() {
         <Route path="/social" element={token ? <Social token={token} /> : <Navigate to="/login" />} />
         <Route path="/" element={<Home token={token} />} />
         <Route path="/watchlists" element={<Watchlists />} />
+        <Route path="/watchlists/:id" element={<WatchlistDetails />} />
       </Routes>
     </Router>
   );

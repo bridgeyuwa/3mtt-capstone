@@ -33,15 +33,46 @@ exports.login = async (req, res) => {
   }
 };
 
+// exports.profile = async (req, res) => {
+//   // Always refetch user to ensure latest, and to avoid partial req.user
+//   const userId = req.user.id || req.user._id;
+//   const user = await User.findById(userId);
+//   if (!user) return res.status(404).json({ message: "User not found" });
+
+//   // Pull watchlists from their collection
+//   const Watchlist = require('../models/watchlist');
+//   const watchlists = await Watchlist.find({ user: user._id });
+
+//   res.json({
+//     username: user.username,
+//     email: user.email,
+//     bio: user.bio,
+//     avatar: user.avatar,
+//     favorites: user.favorites || [],
+//     watchlists: watchlists || [],
+//     following: user.following || [],
+//     followers: user.followers || [],
+//     _id: user._id
+//   });
+// };
+
 exports.profile = async (req, res) => {
   // Always refetch user to ensure latest, and to avoid partial req.user
   const userId = req.user.id || req.user._id;
-  const user = await User.findById(userId);
+  // --- CHANGE BELOW: populate followers/following with username & avatar ---
+  const user = await User.findById(userId)
+    .populate('followers', 'username avatar')
+    .populate('following', 'username avatar');
   if (!user) return res.status(404).json({ message: "User not found" });
 
   // Pull watchlists from their collection
   const Watchlist = require('../models/watchlist');
   const watchlists = await Watchlist.find({ user: user._id });
+
+
+
+console.log("Followers:", user.followers);
+console.log("Following:", user.following);
 
   res.json({
     username: user.username,
@@ -50,6 +81,7 @@ exports.profile = async (req, res) => {
     avatar: user.avatar,
     favorites: user.favorites || [],
     watchlists: watchlists || [],
+    // -- You now get full objects, not just IDs! --
     following: user.following || [],
     followers: user.followers || [],
     _id: user._id

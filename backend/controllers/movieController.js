@@ -252,6 +252,21 @@ exports.getWatchlists = async (req, res) => {
 };
 
 
+// Get details for a single watchlist by ID
+
+exports.getWatchlistDetails = async (req, res) => {
+  try {
+    const watchlist = await Watchlist.findById(req.params.id);
+    if (!watchlist) {
+      return res.status(404).json({ message: "Watchlist not found" });
+    }
+    res.json(watchlist);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 // Popular, trending, etc.
 exports.getTrending = async (req, res) => {

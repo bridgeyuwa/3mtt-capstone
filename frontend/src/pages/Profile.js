@@ -3,6 +3,8 @@ import API, { setAuthToken } from '../api/api';
 import { useParams } from 'react-router-dom';
 import '../styles/profile.css';
 
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+
 export default function Profile({ token, onLogout }) {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
@@ -11,13 +13,33 @@ export default function Profile({ token, onLogout }) {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [message, setMessage] = useState('');
+  const [favoriteMovies, setFavoriteMovies] = useState([]);
 
   useEffect(() => {
     setAuthToken(token);
-    API.get(userId ? `/users/${userId}` : '/users/me').then(res => {
+    API.get(userId ? `/users/${userId}` : '/users/me').then(async res => {
       setUser(res.data);
       setForm({ bio: res.data.bio, avatar: res.data.avatar });
+
+      // Fetch favorite movie details from TMDB
+      if (res.data.favorites && res.data.favorites.length > 0) {
+        try {
+          const movies = await Promise.all(
+            res.data.favorites.map(id =>
+              fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            )
+          );
+          setFavoriteMovies(movies.filter(Boolean));
+        } catch (err) {
+          setFavoriteMovies([]);
+        }
+      } else {
+        setFavoriteMovies([]);
+      }
     });
+
     if (userId) {
       API.get(`/social/followers/${userId}`).then(res => setFollowers(res.data));
       API.get(`/social/following/${userId}`).then(res => setFollowing(res.data));
@@ -53,22 +75,39 @@ export default function Profile({ token, onLogout }) {
       {message && <div className="info">{message}</div>}
       <h3>Favorites</h3>
       <ul>
-        {(user.favorites && user.favorites.length > 0)
-          ? user.favorites.map(f => <li key={f}>{f}</li>)
-          : <li>No favorites yet.</li>
+        {(favoriteMovies.length > 0)
+          ? favoriteMovies.map(m => (
+              <li key={m.id}>
+                <a href={`/movie/${m.id}`} style={{textDecoration: 'none', color: 'inherit'}}>
+                  {m.title || m.name || m.original_title || 'Unknown Title'}
+                  {m.poster_path && (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
+                      alt={m.title || m.name}
+                      style={{ verticalAlign: 'middle', marginLeft: 8, height: 50 }}
+                    />
+                  )}
+                </a>
+              </li>
+            ))
+          // fallback: show IDs if fetch fails
+          : (user.favorites && user.favorites.length > 0
+              ? user.favorites.map(f => <li key={f}>{f}</li>)
+              : <li>No favorites yet.</li>
+            )
         }
       </ul>
       <h3>Watchlists</h3>
-      <ul>
-        {(user.watchlists && user.watchlists.length > 0)
-          ? user.watchlists.map(wl => (
-            <li key={wl._id || wl.name}>
-              {wl.name}: {(wl.movies && wl.movies.length > 0) ? wl.movies.join(', ') : 'No movies'}
-            </li>
-          ))
-          : <li>No watchlists yet.</li>
-        }
-      </ul>
+<ul>
+  {(user.watchlists && user.watchlists.length > 0)
+    ? user.watchlists.map(wl => (
+        <li key={wl._id || wl.name}>
+          {wl.name}
+        </li>
+      ))
+    : <li>No watchlists yet.</li>
+  }
+</ul>
       <h3>Followers: {followers.length} | Following: {following.length}</h3>
       <div>
         <b>Followers:</b> {followers.map(f => f.username).join(', ')}

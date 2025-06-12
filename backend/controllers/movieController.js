@@ -104,16 +104,13 @@ exports.getFavorites = async (req, res) => {
 };
 
 // Watchlists
-// Create a new watchlist
+// Create a new watchlist (no change needed)
 exports.createWatchlist = async (req, res) => {
   try {
     const userId = req.user.id;
     const { name } = req.body;
-
-    // Check for duplicates
     const exists = await Watchlist.findOne({ user: userId, name });
     if (exists) return res.status(400).json({ message: "Watchlist already exists" });
-
     const watchlist = await Watchlist.create({ user: userId, name, movies: [] });
     res.json(watchlist);
   } catch (err) {
@@ -121,13 +118,13 @@ exports.createWatchlist = async (req, res) => {
   }
 };
 
-// Delete a watchlist
+// FIXED: Delete a watchlist by _id
 exports.deleteWatchlist = async (req, res) => {
   try {
-    const userId = req.user.id; // <-- Define userId here!
-    const name = req.params.name;
-    console.log('Delete attempt:', { userId, name }); // Now userId is defined
-    const result = await Watchlist.deleteOne({ user: userId, name });
+    const userId = req.user.id;
+    const watchlistId = req.params.id; // <-- use id not name!
+    console.log('Delete attempt:', { userId, watchlistId });
+    const result = await Watchlist.deleteOne({ user: userId, _id: watchlistId });
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: 'Watchlist not found' });
     }
@@ -138,12 +135,12 @@ exports.deleteWatchlist = async (req, res) => {
   }
 };
 
-// Add movie to a watchlist
+// FIXED: Add movie to watchlist by _id
 exports.addToWatchlist = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { listName, movieId } = req.body;
-    const watchlist = await Watchlist.findOne({ user: userId, name: listName });
+    const { watchlistId, movieId } = req.body;
+    const watchlist = await Watchlist.findOne({ user: userId, _id: watchlistId });
     if (!watchlist) return res.status(404).json({ message: "Watchlist not found" });
     if (!watchlist.movies.includes(movieId)) watchlist.movies.push(movieId);
     await watchlist.save();
@@ -153,16 +150,41 @@ exports.addToWatchlist = async (req, res) => {
   }
 };
 
-// Remove movie from a watchlist
+// FIXED: Remove movie from watchlist by _id
 exports.removeFromWatchlist = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { listName, movieId } = req.body;
-    const watchlist = await Watchlist.findOne({ user: userId, name: listName });
+    const { watchlistId, movieId } = req.body;
+    const watchlist = await Watchlist.findOne({ user: userId, _id: watchlistId });
     if (!watchlist) return res.status(404).json({ message: "Watchlist not found" });
     watchlist.movies = watchlist.movies.filter(m => m !== movieId);
     await watchlist.save();
     res.json(watchlist);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Rename a watchlist by _id
+exports.renameWatchlist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const watchlistId = req.params.id;
+    const { name } = req.body;
+    // Check for duplicate name for this user
+    const existing = await Watchlist.findOne({ user: userId, name });
+    if (existing) {
+      return res.status(400).json({ message: "You already have a watchlist with that name." });
+    }
+    const updated = await Watchlist.findOneAndUpdate(
+      { user: userId, _id: watchlistId },
+      { name },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ message: "Watchlist not found" });
+    }
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

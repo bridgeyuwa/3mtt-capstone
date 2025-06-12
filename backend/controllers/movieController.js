@@ -84,20 +84,46 @@ exports.getRecommendations = async (req, res) => {
 };
 
 // Favorites
+// exports.addFavorite = async (req, res) => {
+//   const user = req.user;
+//   const { id } = req.params;
+//   if (!user.favorites.includes(id)) user.favorites.push(id);
+//   await user.save();
+//   res.json(user.favorites);
+// };
+
 exports.addFavorite = async (req, res) => {
-  const user = req.user;
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
   const { id } = req.params;
+  if (!Array.isArray(user.favorites)) user.favorites = [];
   if (!user.favorites.includes(id)) user.favorites.push(id);
   await user.save();
   res.json(user.favorites);
 };
+
+
+// exports.removeFavorite = async (req, res) => {
+//   const user = req.user;
+//   const { id } = req.params;
+//   user.favorites = user.favorites.filter(mid => mid !== id);
+//   await user.save();
+//   res.json(user.favorites);
+// };
+
 exports.removeFavorite = async (req, res) => {
-  const user = req.user;
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
   const { id } = req.params;
+  if (!Array.isArray(user.favorites)) user.favorites = [];
   user.favorites = user.favorites.filter(mid => mid !== id);
   await user.save();
   res.json(user.favorites);
 };
+
+
 exports.getFavorites = async (req, res) => {
   const user = req.user;
   res.json(user.favorites);

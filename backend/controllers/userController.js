@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const Watchlist = require('../models/watchlist');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (id) =>
@@ -33,22 +34,32 @@ exports.login = async (req, res) => {
 };
 
 exports.profile = async (req, res) => {
-  const user = req.user;
+  // Always refetch user to ensure latest, and to avoid partial req.user
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  // Pull watchlists from their collection
+  const Watchlist = require('../models/watchlist');
+  const watchlists = await Watchlist.find({ user: user._id });
+
   res.json({
     username: user.username,
     email: user.email,
     bio: user.bio,
     avatar: user.avatar,
-    favorites: user.favorites,
-    watchlists: user.watchlists,
-    following: user.following,
-    followers: user.followers,
+    favorites: user.favorites || [],
+    watchlists: watchlists || [],
+    following: user.following || [],
+    followers: user.followers || [],
     _id: user._id
   });
 };
 
 exports.updateProfile = async (req, res) => {
-  const user = req.user;
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
   const { bio, avatar } = req.body;
   user.bio = bio || user.bio;
   user.avatar = avatar || user.avatar;

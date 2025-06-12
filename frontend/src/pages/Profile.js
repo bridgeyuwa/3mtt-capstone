@@ -52,12 +52,22 @@ export default function Profile({ token, onLogout }) {
       )}
       {message && <div className="info">{message}</div>}
       <h3>Favorites</h3>
-      <ul>{user.favorites.map(f => <li key={f}>{f}</li>)}</ul>
+      <ul>
+        {(user.favorites && user.favorites.length > 0)
+          ? user.favorites.map(f => <li key={f}>{f}</li>)
+          : <li>No favorites yet.</li>
+        }
+      </ul>
       <h3>Watchlists</h3>
       <ul>
-        {user.watchlists.map(wl => (
-          <li key={wl.name}>{wl.name}: {wl.movies.join(', ')}</li>
-        ))}
+        {(user.watchlists && user.watchlists.length > 0)
+          ? user.watchlists.map(wl => (
+            <li key={wl._id || wl.name}>
+              {wl.name}: {(wl.movies && wl.movies.length > 0) ? wl.movies.join(', ') : 'No movies'}
+            </li>
+          ))
+          : <li>No watchlists yet.</li>
+        }
       </ul>
       <h3>Followers: {followers.length} | Following: {following.length}</h3>
       <div>

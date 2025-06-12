@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import API, { setAuthToken } from '../api/api';
+import { Link } from 'react-router-dom';
 
 export default function Social({ token }) {
   const [users, setUsers] = useState([]);
@@ -66,16 +67,20 @@ export default function Social({ token }) {
           .filter(u => String(u._id) !== String(me._id))
           .map(u => (
             <li key={u._id}>
-              {u.username}
+              <Link to={`/users/${u._id}`} style={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}>
+                {u.username}
+              </Link>
               {isFollowing(u._id) ? (
                 <button
                   onClick={() => handleUnfollow(u._id)}
                   disabled={loadingId === u._id}
+                  style={{ marginLeft: 8 }}
                 >Unfollow</button>
               ) : (
                 <button
                   onClick={() => handleFollow(u._id)}
                   disabled={loadingId === u._id}
+                  style={{ marginLeft: 8 }}
                 >Follow</button>
               )}
             </li>

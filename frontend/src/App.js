@@ -31,7 +31,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/register" element={<Register onLogin={handleLogin} />} />
-        <Route path="/profile/:userId?" element={token ? <Profile token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={token ? <Profile token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+        <Route path="/users/:userId" element={token ? <Profile token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
         <Route path="/recommendations" element={token ? <Recommendations token={token} /> : <Navigate to="/login" />} />
         <Route path="/movie/:id" element={<MovieDetails token={token} />} />
         <Route path="/social" element={token ? <Social token={token} /> : <Navigate to="/login" />} />

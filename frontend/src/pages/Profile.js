@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
-export default function Profile({ token, onLogout }) {
+export default function Profile({ token, onLogout, me }) {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -15,41 +15,48 @@ export default function Profile({ token, onLogout }) {
   const [following, setFollowing] = useState([]);
   const [message, setMessage] = useState('');
   const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const [loadingFollow, setLoadingFollow] = useState(false);
 
-  useEffect(() => {
+  // Determine if this is my own profile
+  const myId = me?._id;
+  const isOwnProfile = !userId || (myId && String(userId) === String(myId));
+
+  // Checks if viewing user is following this profile
+  const isFollowing = () => {
+    if (!me || !me.following) return false;
+    return me.following.some(f => String(f._id) === String(user?._id));
+  };
+
+  // Refresh both profile user and me (for up-to-date follow state)
+  const refreshUser = async () => {
     setAuthToken(token);
-    API.get(userId ? `/users/${userId}` : '/users/me').then(async res => {
-      setUser(res.data);
-      setForm({ bio: res.data.bio, avatar: res.data.avatar });
-
-      // Use populated followers/following directly from user object
-      setFollowers(res.data.followers || []);
-      setFollowing(res.data.following || []);
-
-      // Fetch favorite movie details from TMDB
-      if (res.data.favorites && res.data.favorites.length > 0) {
-        try {
-          const movies = await Promise.all(
-            res.data.favorites.map(id =>
-              fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`)
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null)
-            )
-          );
-          setFavoriteMovies(movies.filter(Boolean));
-        } catch (err) {
-          setFavoriteMovies([]);
-        }
-      } else {
+    const res = await API.get(userId ? `/users/${userId}` : '/users/me');
+    setUser(res.data);
+    setForm({ bio: res.data.bio, avatar: res.data.avatar });
+    setFollowers(res.data.followers || []);
+    setFollowing(res.data.following || []);
+    // Fetch favorite movie details
+    if (res.data.favorites && res.data.favorites.length > 0) {
+      try {
+        const movies = await Promise.all(
+          res.data.favorites.map(id =>
+            fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`)
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null)
+          )
+        );
+        setFavoriteMovies(movies.filter(Boolean));
+      } catch (err) {
         setFavoriteMovies([]);
       }
-    });
+    } else {
+      setFavoriteMovies([]);
+    }
+  };
 
-    // REMOVE these lines:
-    // if (userId) {
-    //   API.get(`/social/followers/${userId}`).then(res => setFollowers(res.data));
-    //   API.get(`/social/following/${userId}`).then(res => setFollowing(res.data));
-    // }
+  useEffect(() => {
+    refreshUser();
+  // eslint-disable-next-line
   }, [token, userId]);
 
   const handleUpdate = async (e) => {
@@ -58,7 +65,34 @@ export default function Profile({ token, onLogout }) {
     await API.put('/users/me', form);
     setEditing(false);
     setMessage('Profile updated!');
-    API.get('/users/me').then(res => setUser(res.data));
+    refreshUser();
+  };
+
+  // Follow/unfollow logic
+  const handleFollow = async () => {
+    setLoadingFollow(true);
+    try {
+      await API.post(`/social/follow/${user._id}`);
+      await refreshUser();
+      if (typeof window !== "undefined" && window.location.pathname === `/users/${user._id}`) {
+        // Optionally, you can also refresh "me" in a parent component if needed
+      }
+    } finally {
+      setLoadingFollow(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    setLoadingFollow(true);
+    try {
+      await API.post(`/social/unfollow/${user._id}`);
+      await refreshUser();
+      if (typeof window !== "undefined" && window.location.pathname === `/users/${user._id}`) {
+        // Optionally, you can also refresh "me" in a parent component if needed
+      }
+    } finally {
+      setLoadingFollow(false);
+    }
   };
 
   if (!user) return <div>Loading...</div>;
@@ -69,8 +103,21 @@ export default function Profile({ token, onLogout }) {
       <img src={user.avatar || "https://ui-avatars.com/api/?name=" + user.username} alt="avatar" className="avatar" />
       <div><b>Email:</b> {user.email}</div>
       <div><b>Bio:</b> {user.bio}</div>
-      <button onClick={onLogout}>Logout</button>
-      <button onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit Profile"}</button>
+      {/* Show logout and edit only on own profile */}
+      {isOwnProfile && (
+        <>
+          <button onClick={onLogout}>Logout</button>
+          <button onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit Profile"}</button>
+        </>
+      )}
+      {/* Show follow/unfollow if not own profile and logged in */}
+      {!isOwnProfile && me && (
+        isFollowing() ? (
+          <button onClick={handleUnfollow} disabled={loadingFollow}>Unfollow</button>
+        ) : (
+          <button onClick={handleFollow} disabled={loadingFollow}>Follow</button>
+        )
+      )}
       {editing && (
         <form onSubmit={handleUpdate} className="profile-form">
           Edit Bio: <input value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Bio" />

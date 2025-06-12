@@ -4,37 +4,82 @@ import API, { setAuthToken } from '../api/api';
 export default function Social({ token }) {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
+
+  // Checks if userId is in the following array (which is an array of user objects)
+  const isFollowing = (userId) => {
+    if (!me || !Array.isArray(me.following)) return false;
+    return me.following.some(f => String(f._id) === String(userId));
+  };
+
+  const refreshData = async () => {
+    try {
+      setAuthToken(token);
+      const [meRes, usersRes] = await Promise.all([
+        API.get('/users/me'),
+        API.get('/users/all'),
+      ]);
+      setMe(meRes.data);
+      setUsers(usersRes.data);
+    } catch (err) {
+      // Optionally handle error
+    }
+  };
 
   useEffect(() => {
-    setAuthToken(token);
-    API.get('/users/me').then(res => setMe(res.data));
-    API.get('/users/all').then(res => setUsers(res.data));
+    if (!token) return;
+    refreshData();
+    // eslint-disable-next-line
   }, [token]);
 
   const handleFollow = async (userId) => {
-    await API.post(`/social/follow/${userId}`);
-    API.get('/users/me').then(res => setMe(res.data));
+    setLoadingId(userId);
+    try {
+      await API.post(`/social/follow/${userId}`);
+      await refreshData();
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   const handleUnfollow = async (userId) => {
-    await API.post(`/social/unfollow/${userId}`);
-    API.get('/users/me').then(res => setMe(res.data));
+    setLoadingId(userId);
+    try {
+      await API.post(`/social/unfollow/${userId}`);
+      await refreshData();
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setLoadingId(null);
+    }
   };
+
+  if (!me || !users.length) return <div>Loading...</div>;
 
   return (
     <div className="profile-container">
       <h2>Social</h2>
       <ul>
-        {users.filter(u => u._id !== me?._id).map(u => (
-          <li key={u._id}>
-            {u.username}
-            {me && me.following.includes(u._id) ? (
-              <button onClick={() => handleUnfollow(u._id)}>Unfollow</button>
-            ) : (
-              <button onClick={() => handleFollow(u._id)}>Follow</button>
-            )}
-          </li>
-        ))}
+        {users
+          .filter(u => String(u._id) !== String(me._id))
+          .map(u => (
+            <li key={u._id}>
+              {u.username}
+              {isFollowing(u._id) ? (
+                <button
+                  onClick={() => handleUnfollow(u._id)}
+                  disabled={loadingId === u._id}
+                >Unfollow</button>
+              ) : (
+                <button
+                  onClick={() => handleFollow(u._id)}
+                  disabled={loadingId === u._id}
+                >Follow</button>
+              )}
+            </li>
+          ))}
       </ul>
     </div>
   );

@@ -4,7 +4,7 @@ const User = require('../models/user');
 exports.followUser = async (req, res) => {
   const user = req.user;
   const { userId } = req.params;
-  if (user._id.equals(userId)) return res.status(400).json({ message: "Cannot follow yourself" });
+  if (user._id.equals(userId)) return res.status(400).json({ message: "You Cannot follow yourself" });
   const target = await User.findById(userId);
   if (!target) return res.status(404).json({ message: "User not found" });
   if (!user.following.includes(userId)) user.following.push(userId);

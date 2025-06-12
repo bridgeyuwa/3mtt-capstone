@@ -57,28 +57,93 @@ exports.getMovieDetails = async (req, res) => {
   }
 };
 
+// exports.getRecommendations = async (req, res) => {
+//   try {
+//     const user = req.user;
+//     // Simple logic: recommend based on favorite genres or movies
+//     let genres = [];
+//     if (user.favorites.length) {
+//       const movies = await Promise.all(user.favorites.map(id =>
+//         tmdb.get(`/movie/${id}`)
+//       ));
+//       movies.forEach(m => {
+//         if (m.data.genres) genres.push(...m.data.genres.map(g => g.id));
+//       });
+//       genres = [...new Set(genres)];
+//     }
+//     let params = {};
+//     if (genres.length)
+//       params.with_genres = genres.join(',');
+//     params.sort_by = 'vote_average.desc';
+//     params.page = 1;
+//     const { data } = await tmdb.get('/discover/movie', { params });
+//     res.json(data.results.slice(0, 10));
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
 exports.getRecommendations = async (req, res) => {
   try {
     const user = req.user;
-    // Simple logic: recommend based on favorite genres or movies
     let genres = [];
     if (user.favorites.length) {
       const movies = await Promise.all(user.favorites.map(id =>
-        tmdb.get(`/movie/${id}`)
+        tmdb.get(`/movie/${id}`).catch(() => null)
       ));
       movies.forEach(m => {
-        if (m.data.genres) genres.push(...m.data.genres.map(g => g.id));
+        if (m && m.data.genres) genres.push(...m.data.genres.map(g => g.id));
       });
-      genres = [...new Set(genres)];
+      // Count genre frequency
+      const genreCounts = {};
+      genres.forEach(g => genreCounts[g] = (genreCounts[g] || 0) + 1);
+      const sortedGenres = Object.entries(genreCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(entry => entry[0]);
+      genres = sortedGenres.slice(0, 2); // Top 2 genres
     }
-    let params = {};
-    if (genres.length)
-      params.with_genres = genres.join(',');
-    params.sort_by = 'vote_average.desc';
-    params.page = 1;
-    const { data } = await tmdb.get('/discover/movie', { params });
-    res.json(data.results.slice(0, 10));
+
+    let results = [];
+    // Get TMDB recommendations for each favorite
+    if (user.favorites.length) {
+      const recs = await Promise.all(user.favorites.slice(0, 3).map(id =>
+        tmdb.get(`/movie/${id}/recommendations`).then(r => r.data.results).catch(() => [])
+      ));
+      results = recs.flat();
+    }
+
+    // Fallback: discover by top genres
+    if ((!results || results.length === 0) && genres.length) {
+      const params = {
+        with_genres: genres.join(','),
+        sort_by: 'vote_average.desc',
+        page: 1,
+        'vote_count.gte': 100
+      };
+      const { data } = await tmdb.get('/discover/movie', { params });
+      results = data.results;
+    }
+
+    // Fallback: trending
+    if (!results || results.length === 0) {
+      const { data } = await tmdb.get('/trending/movie/week');
+      results = data.results;
+    }
+
+    // Remove duplicates based on movie id
+    const unique = [];
+    const seen = new Set();
+    for (const movie of results) {
+      if (!seen.has(movie.id)) {
+        unique.push(movie);
+        seen.add(movie.id);
+      }
+      if (unique.length === 10) break;
+    }
+
+    res.json(unique);
   } catch (err) {
+    console.error('Recommendations error:', err);
     res.status(500).json({ message: err.message });
   }
 };

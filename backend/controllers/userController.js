@@ -152,10 +152,31 @@ exports.getFollowing = async (req, res) => {
 };
 
 /**
- * List all users for Users Directory page.
- * Returns minimal public info: username, _id, avatar.
+ * List all users for Users Directory page. Returns minimal public info.
  */
 exports.listUsers = async (req, res) => {
-  const users = await User.find({}, 'username _id avatar');
-  res.json(users);
+  try {
+    const users = await User.find({}, 'username _id avatar');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get an individual user's profile with followers, following, and watchlists. Excludes password from the response.
+ */
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .select('-password')
+      .populate('followers', '_id username avatar')
+      .populate('following', '_id username avatar')
+      .populate('watchlists')
+      .lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

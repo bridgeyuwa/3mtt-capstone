@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+
+
 /**
  * Authentication middleware for Express.
  * Checks for a valid JWT in the Authorization header and attaches the user to req.user.

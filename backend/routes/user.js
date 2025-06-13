@@ -8,10 +8,11 @@ const {
   followUser,
   unfollowUser,
   getFollowers,
-  getFollowing
+  getFollowing,
+  listUsers,
+  getUserProfile
 } = require('../controllers/userController');
 const auth = require('../middleware/auth');
-const User = require('../models/user'); // <-- moved to top
 const router = express.Router();
 
 // Register a new user
@@ -30,25 +31,13 @@ router.put('/me', auth, updateProfile);
  * List all users for Users Directory page.
  * Returns minimal public info: username, _id, avatar.
  */
-router.get('/', async (req, res) => {
-  const users = await User.find({}, 'username _id avatar');
-  res.json(users);
-});
+router.get('/', listUsers);
 
 /**
  * Get an individual user's profile with followers, following, and watchlists.
  * Excludes password from the response.
  */
-router.get('/:userId', async (req, res) => {
-  const user = await User.findById(req.params.userId)
-    .select('-password')
-    .populate('followers', '_id username avatar')
-    .populate('following', '_id username avatar')
-    .populate('watchlists')
-    .lean();
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
-});
+router.get('/:userId', getUserProfile);
 
 // Follow another user by userId (authenticated)
 router.post('/:userId/follow', auth, followUser);

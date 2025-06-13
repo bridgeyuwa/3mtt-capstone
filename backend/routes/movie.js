@@ -16,6 +16,7 @@ router.put('/watchlists/remove', auth, movieCtrl.removeFromWatchlist); // Remove
 router.get('/watchlists/:id', movieCtrl.getWatchlistDetails); 
 router.put('/watchlists/:id', auth, movieCtrl.renameWatchlist);
 router.delete('/watchlists/:id', auth, movieCtrl.deleteWatchlist);   // Delete a watchlist by name
+router.get('/users/:userId/watchlists', movieCtrl.getUserWatchlists); // Get watchlists for a specific user
 
 router.get('/search', movieCtrl.searchMovies);
 router.get('/genres', movieCtrl.getGenres);

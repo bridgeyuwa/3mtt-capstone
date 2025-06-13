@@ -57,7 +57,7 @@ function WatchlistDetails() {
     const shareLink = `${window.location.origin}/watchlists/${id}`;
     navigator.clipboard.writeText(shareLink).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), 3000); //set copied back to false after 3 seconds
     });
   };
 
@@ -83,7 +83,7 @@ function WatchlistDetails() {
           }}
           title="Copy shareable link"
         >
-          {copied ? "Copied!" : "Share"}
+          {copied ? "Copied!" : "Copy and Share"}
         </button>
       </h2>
       <h4>Movies in this watchlist:</h4>

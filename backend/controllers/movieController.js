@@ -332,6 +332,7 @@ exports.getTrending = async (req, res) => {
 
 //new feature
 // Get all watchlists for a specific user (for viewing another user's profile)
+
 exports.getUserWatchlists = async (req, res) => {
   try {
     const { userId } = req.params;

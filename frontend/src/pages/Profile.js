@@ -17,6 +17,7 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
   const [loadingFollow, setLoadingFollow] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [error, setError] = useState('');
+  const [watchlists, setWatchlists] = useState([]); // <-- NEW STATE
 
   // Determine if this is my own profile
   const myId = me?._id;
@@ -38,6 +39,19 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
       setForm({ bio: res.data.bio || '', avatar: res.data.avatar || '' });
       setFollowers(res.data.followers || []);
       setFollowing(res.data.following || []);
+      // --- WATCHLISTS FIX ---
+      if (!userId || (me && String(userId) === String(me._id))) {
+        // Own profile: use included watchlists
+        setWatchlists(res.data.watchlists || []);
+      } else {
+        // Other user's profile: fetch via endpoint
+        try {
+          const wlRes = await API.get(`/movies/users/${userId}/watchlists`);
+          setWatchlists(wlRes.data || []);
+        } catch {
+          setWatchlists([]);
+        }
+      }
       // Fetch favorite movie details
       if (res.data.favorites && res.data.favorites.length > 0) {
         setLoadingFavorites(true);
@@ -62,6 +76,7 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
     } catch (err) {
       setError('Failed to load user profile.');
       setUser(null);
+      setWatchlists([]); // clear on error
     }
   };
 
@@ -209,8 +224,8 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
 
       <h3>Watchlists</h3>
       <ul>
-        {user.watchlists && user.watchlists.length > 0
-          ? user.watchlists.map(wl => (
+        {watchlists && watchlists.length > 0
+          ? watchlists.map(wl => (
             <li key={wl._id || wl.name}>
               <Link to={`/watchlists/${wl._id}`}>{wl.name}</Link>
             </li>

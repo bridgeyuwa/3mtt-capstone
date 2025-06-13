@@ -57,7 +57,7 @@ function WatchlistDetails() {
     const shareLink = `${window.location.origin}/watchlists/${id}`;
     navigator.clipboard.writeText(shareLink).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 3000); //set copied back to false after 3 seconds
+      setTimeout(() => setCopied(false), 2000); //set copied back to false after 2 seconds
     });
   };
 

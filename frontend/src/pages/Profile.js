@@ -223,6 +223,8 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
       </ul>
 
       <h3>Watchlists</h3>
+
+
       <ul>
         {watchlists && watchlists.length > 0
           ? watchlists.map(wl => (
@@ -230,9 +232,48 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
               <Link to={`/watchlists/${wl._id}`}>{wl.name}</Link>
             </li>
           ))
-          : <li>No watchlists yet.</li>
+          : (
+            <li>
+              No watchlists
+              {isOwnProfile && (
+                <> — <Link
+                  to="/watchlists"
+                  style={{
+                    display: 'inline-block',
+                    margin: '0 0 0 8px',
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: '#fff',
+                    borderRadius: '5px',
+                    textDecoration: 'none',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Create Watchlist
+                </Link></>
+              )}
+            </li>
+          )
         }
       </ul>
+
+      {isOwnProfile && watchlists && watchlists.length > 0 && (
+        <Link
+          to="/watchlists"
+          style={{
+            display: 'inline-block',
+            margin: '12px 0',
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: '#fff',
+            borderRadius: '5px',
+            textDecoration: 'none',
+            fontWeight: 'bold'
+          }}
+        >
+          Manage Watchlists
+        </Link>
+      )}
 
       <h3>Followers: {followers.length} | Following: {following.length}</h3>
       <div>
@@ -240,22 +281,22 @@ export default function Profile({ token, onLogout, me, refreshMe }) {
         {followers.length === 0
           ? "None"
           : followers.map((f, i) => (
-              <span key={f._id || f.username}>
-                <Link to={`/users/${f._id}`}>{f.username}</Link>
-                {i < followers.length - 1 && ', '}
-              </span>
-            ))}
+            <span key={f._id || f.username}>
+              <Link to={`/users/${f._id}`}>{f.username}</Link>
+              {i < followers.length - 1 && ', '}
+            </span>
+          ))}
       </div>
       <div>
         <b>Following:</b>{" "}
         {following.length === 0
           ? "None"
           : following.map((f, i) => (
-              <span key={f._id || f.username}>
-                <Link to={`/users/${f._id}`}>{f.username}</Link>
-                {i < following.length - 1 && ', '}
-              </span>
-            ))}
+            <span key={f._id || f.username}>
+              <Link to={`/users/${f._id}`}>{f.username}</Link>
+              {i < following.length - 1 && ', '}
+            </span>
+          ))}
       </div>
     </div>
   );

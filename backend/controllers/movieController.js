@@ -329,3 +329,15 @@ exports.getTrending = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+//new feature
+// Get all watchlists for a specific user (for viewing another user's profile)
+exports.getUserWatchlists = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const watchlists = await Watchlist.find({ user: userId });
+    res.json(watchlists);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

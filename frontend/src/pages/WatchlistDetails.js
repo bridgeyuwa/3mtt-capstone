@@ -11,6 +11,7 @@ function WatchlistDetails() {
   const [movieDetails, setMovieDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchWatchlistAndMovies = async () => {
@@ -51,6 +52,15 @@ function WatchlistDetails() {
     fetchWatchlistAndMovies();
   }, [id]);
 
+  // Share (Copy Link) functionality
+  const handleCopyLink = () => {
+    const shareLink = `${window.location.origin}/watchlists/${id}`;
+    navigator.clipboard.writeText(shareLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
   if (loading) return <div>Loading watchlist details...</div>;
   if (error) return <div>{error}</div>;
   if (!watchlist) return <div>Watchlist not found.</div>;
@@ -58,7 +68,24 @@ function WatchlistDetails() {
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
       <Link to="/watchlists">&larr; Back to Watchlists</Link>
-      <h2>{watchlist.name}</h2>
+      <h2>
+        {watchlist.name}{" "}
+        <button
+          onClick={handleCopyLink}
+          style={{
+            marginLeft: 10,
+            padding: "4px 10px",
+            borderRadius: 4,
+            border: "1px solid #ddd",
+            background: "#f9f9f9",
+            cursor: "pointer",
+            fontSize: 14,
+          }}
+          title="Copy shareable link"
+        >
+          {copied ? "Copied!" : "Share"}
+        </button>
+      </h2>
       <h4>Movies in this watchlist:</h4>
       {movieDetails.length === 0 ? (
         <p>No movies in this watchlist.</p>

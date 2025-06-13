@@ -1,9 +1,12 @@
 const Review = require('../models/review');
 
-// Add or update a review for a movie
+/**
+ * Add a new review or update an existing review for a movie.
+ * Requires user authentication.
+ */
 exports.addOrUpdateReview = async (req, res) => {
   try {
-    // Check authentication
+    // User must be authenticated
     if (!req.user || !req.user._id) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -12,6 +15,7 @@ exports.addOrUpdateReview = async (req, res) => {
       return res.status(400).json({ message: "movieId and rating are required" });
     }
 
+    // Find existing review by this user for the movie, or create new one
     let r = await Review.findOne({ user: req.user._id, movieId });
     if (r) {
       r.rating = rating;
@@ -26,7 +30,10 @@ exports.addOrUpdateReview = async (req, res) => {
   }
 };
 
-// Get reviews for a movie
+/**
+ * Get all reviews for a specific movie.
+ * Returns an array of reviews, each populated with user info.
+ */
 exports.getMovieReviews = async (req, res) => {
   try {
     const { movieId } = req.params;
@@ -38,7 +45,10 @@ exports.getMovieReviews = async (req, res) => {
   }
 };
 
-// Get reviews by a user
+/**
+ * Get all reviews written by a specific user.
+ * Returns an array of reviews, each populated with user info.
+ */
 exports.getUserReviews = async (req, res) => {
   try {
     const { userId } = req.params;

@@ -1,8 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/user');
 const router = express.Router();
+
+/**
+ * Register a new user.
+ * - Checks for existing email.
+ * - Hashes the password before saving.
+ * - Returns a JWT on successful registration.
+ */
 
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -10,9 +17,7 @@ router.post('/register', async (req, res) => {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: 'User already exists' });
 
-    user = new User({ username, email, password });
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    user = new User({ username, email, password }); 
     await user.save();
 
     const payload = { user: { id: user.id } };
@@ -25,6 +30,11 @@ router.post('/register', async (req, res) => {
   }
 });
 
+/**
+ * Log in an existing user.
+ * - Checks credentials against stored email and password hash.
+ * - Returns a JWT on successful login.
+ */
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {

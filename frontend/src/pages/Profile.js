@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import API, { setAuthToken } from '../api/api';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import '../styles/profile.css';
-import { Link } from "react-router-dom";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
-export default function Profile({ token, onLogout, me }) {
+export default function Profile({ token, onLogout, me, refreshMe }) {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -16,6 +15,8 @@ export default function Profile({ token, onLogout, me }) {
   const [message, setMessage] = useState('');
   const [favoriteMovies, setFavoriteMovies] = useState([]);
   const [loadingFollow, setLoadingFollow] = useState(false);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [error, setError] = useState('');
 
   // Determine if this is my own profile
   const myId = me?._id;
@@ -30,53 +31,70 @@ export default function Profile({ token, onLogout, me }) {
   // Refresh both profile user and me (for up-to-date follow state)
   const refreshUser = async () => {
     setAuthToken(token);
-    const res = await API.get(userId ? `/users/${userId}` : '/users/me');
-    setUser(res.data);
-    setForm({ bio: res.data.bio, avatar: res.data.avatar });
-    setFollowers(res.data.followers || []);
-    setFollowing(res.data.following || []);
-    // Fetch favorite movie details
-    if (res.data.favorites && res.data.favorites.length > 0) {
-      try {
-        const movies = await Promise.all(
-          res.data.favorites.map(id =>
-            fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`)
-              .then(r => r.ok ? r.json() : null)
-              .catch(() => null)
-          )
-        );
-        setFavoriteMovies(movies.filter(Boolean));
-      } catch (err) {
+    setError('');
+    try {
+      const res = await API.get(userId ? `/users/${userId}` : '/users/me');
+      setUser(res.data);
+      setForm({ bio: res.data.bio || '', avatar: res.data.avatar || '' });
+      setFollowers(res.data.followers || []);
+      setFollowing(res.data.following || []);
+      // Fetch favorite movie details
+      if (res.data.favorites && res.data.favorites.length > 0) {
+        setLoadingFavorites(true);
+        try {
+          const movies = await Promise.all(
+            res.data.favorites.map(id =>
+              fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            )
+          );
+          setFavoriteMovies(movies.filter(Boolean));
+        } catch (err) {
+          setFavoriteMovies([]);
+        } finally {
+          setLoadingFavorites(false);
+        }
+      } else {
         setFavoriteMovies([]);
+        setLoadingFavorites(false);
       }
-    } else {
-      setFavoriteMovies([]);
+    } catch (err) {
+      setError('Failed to load user profile.');
+      setUser(null);
     }
   };
 
   useEffect(() => {
     refreshUser();
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [token, userId]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setAuthToken(token);
-    await API.put('/users/me', form);
-    setEditing(false);
-    setMessage('Profile updated!');
-    refreshUser();
+    setError('');
+    try {
+      await API.put('/users/me', form);
+      setEditing(false);
+      setMessage('Profile updated!');
+      refreshUser();
+      setTimeout(() => setMessage(''), 2500);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Update failed!');
+    }
   };
 
   // Follow/unfollow logic
   const handleFollow = async () => {
     setLoadingFollow(true);
+    setError('');
     try {
-      await API.post(`/social/follow/${user._id}`);
+      await API.post(`/users/${user._id}/follow`);
       await refreshUser();
-      if (typeof window !== "undefined" && window.location.pathname === `/users/${user._id}`) {
-        // Optionally, you can also refresh "me" in a parent component if needed
-      }
+      if (refreshMe) await refreshMe(); // Refresh "me" after follow
+    } catch (err) {
+      setError('Could not follow user.');
     } finally {
       setLoadingFollow(false);
     }
@@ -84,25 +102,31 @@ export default function Profile({ token, onLogout, me }) {
 
   const handleUnfollow = async () => {
     setLoadingFollow(true);
+    setError('');
     try {
-      await API.post(`/social/unfollow/${user._id}`);
+      await API.post(`/users/${user._id}/unfollow`);
       await refreshUser();
-      if (typeof window !== "undefined" && window.location.pathname === `/users/${user._id}`) {
-        // Optionally, you can also refresh "me" in a parent component if needed
-      }
+      if (refreshMe) await refreshMe(); // Refresh "me" after unfollow
+    } catch (err) {
+      setError('Could not unfollow user.');
     } finally {
       setLoadingFollow(false);
     }
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return <div className="profile-container">{error ? <div className="error">{error}</div> : "Loading..."}</div>;
 
   return (
     <div className="profile-container">
       <h2>{user.username}'s Profile</h2>
-      <img src={user.avatar || "https://ui-avatars.com/api/?name=" + user.username} alt="avatar" className="avatar" />
+      <img
+        src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}`}
+        alt={`${user.username}'s avatar`}
+        className="avatar"
+      />
       <div><b>Email:</b> {user.email}</div>
       <div><b>Bio:</b> {user.bio}</div>
+
       {/* Show logout and edit only on own profile */}
       {isOwnProfile && (
         <>
@@ -110,28 +134,61 @@ export default function Profile({ token, onLogout, me }) {
           <button onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit Profile"}</button>
         </>
       )}
+
       {/* Show follow/unfollow if not own profile and logged in */}
-      {!isOwnProfile && me && (
+      {!isOwnProfile && me && user && (
         isFollowing() ? (
-          <button onClick={handleUnfollow} disabled={loadingFollow}>Unfollow</button>
+          <button
+            onClick={handleUnfollow}
+            disabled={loadingFollow}
+            style={{ minWidth: 90 }}
+          >
+            {loadingFollow ? "..." : "Unfollow"}
+          </button>
         ) : (
-          <button onClick={handleFollow} disabled={loadingFollow}>Follow</button>
+          <button
+            onClick={handleFollow}
+            disabled={loadingFollow}
+            style={{ minWidth: 90 }}
+          >
+            {loadingFollow ? "..." : "Follow"}
+          </button>
         )
       )}
+
       {editing && (
         <form onSubmit={handleUpdate} className="profile-form">
-          Edit Bio: <input value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Bio" />
-          Edit Avatar URL: <input value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))} placeholder="Avatar URL" />
+          <div>
+            Edit Bio:
+            <input
+              value={form.bio}
+              onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+              placeholder="Bio"
+            />
+          </div>
+          <div>
+            Edit Avatar URL:
+            <input
+              value={form.avatar}
+              onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))}
+              placeholder="Avatar URL"
+            />
+          </div>
           <button type="submit">Save</button>
         </form>
       )}
+
       {message && <div className="info">{message}</div>}
+      {error && <div className="error">{error}</div>}
+
       <h3>Favorites</h3>
       <ul>
-        {(favoriteMovies.length > 0)
-          ? favoriteMovies.map(m => (
+        {loadingFavorites ? (
+          <li>Loading favorites...</li>
+        ) : favoriteMovies.length > 0 ? (
+          favoriteMovies.map(m => (
             <li key={m.id}>
-              <a href={`/movie/${m.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link to={`/movie/${m.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 {m.title || m.name || m.original_title || 'Unknown Title'}
                 {m.poster_path && (
                   <img
@@ -140,16 +197,16 @@ export default function Profile({ token, onLogout, me }) {
                     style={{ verticalAlign: 'middle', marginLeft: 8, height: 50 }}
                   />
                 )}
-              </a>
+              </Link>
             </li>
           ))
-          // fallback: show IDs if fetch fails
-          : (user.favorites && user.favorites.length > 0
-            ? user.favorites.map(f => <li key={f}>{f}</li>)
-            : <li>No favorites yet.</li>
-          )
-        }
+        ) : user.favorites && user.favorites.length > 0 ? (
+          user.favorites.map(f => <li key={f}>{f}</li>)
+        ) : (
+          <li>No favorites yet.</li>
+        )}
       </ul>
+
       <h3>Watchlists</h3>
       <ul>
         {user.watchlists && user.watchlists.length > 0
@@ -161,12 +218,29 @@ export default function Profile({ token, onLogout, me }) {
           : <li>No watchlists yet.</li>
         }
       </ul>
+
       <h3>Followers: {followers.length} | Following: {following.length}</h3>
       <div>
-        <b>Followers:</b> {followers.map(f => f.username).join(', ')}
+        <b>Followers:</b>{" "}
+        {followers.length === 0
+          ? "None"
+          : followers.map((f, i) => (
+              <span key={f._id || f.username}>
+                <Link to={`/users/${f._id}`}>{f.username}</Link>
+                {i < followers.length - 1 && ', '}
+              </span>
+            ))}
       </div>
       <div>
-        <b>Following:</b> {following.map(f => f.username).join(', ')}
+        <b>Following:</b>{" "}
+        {following.length === 0
+          ? "None"
+          : following.map((f, i) => (
+              <span key={f._id || f.username}>
+                <Link to={`/users/${f._id}`}>{f.username}</Link>
+                {i < following.length - 1 && ', '}
+              </span>
+            ))}
       </div>
     </div>
   );

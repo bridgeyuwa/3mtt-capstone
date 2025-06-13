@@ -11,7 +11,7 @@ function Header({ token, onLogout }) {
         <Link to="/recommendations">Recommendations</Link>
         {token && <Link to="/profile">Profile</Link>}
         {token && <Link to="/watchlists">My Watchlists</Link>}
-        {token && <Link to="/social">Social</Link>}
+        {token && <Link to="/users">Users</Link>}
         {!token && <Link to="/login">Login</Link>}
         {!token && <Link to="/register">Register</Link>}
         {token && <button onClick={onLogout} className="logout-btn">Logout</button>}

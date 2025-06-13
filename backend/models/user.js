@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String, default: "" },
   favorites: { type: [String], default: [] },
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  watchlists: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Watchlist' }]  // <-- Add this line
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

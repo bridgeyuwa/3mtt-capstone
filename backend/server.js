@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/user');
 const movieRoutes = require('./routes/movie');
-const socialRoutes = require('./routes/social');
 const reviewRoutes = require('./routes/review');
 
 const app = express();
@@ -13,7 +12,6 @@ app.use(express.json());
 
 app.use('/api/users', userRoutes);
 app.use('/api/movies', movieRoutes);
-app.use('/api/social', socialRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 

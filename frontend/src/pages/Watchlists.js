@@ -13,7 +13,6 @@ function WatchlistPage() {
   const [editWatchlistId, setEditWatchlistId] = useState(null);
   const [editWatchlistName, setEditWatchlistName] = useState("");
 
-  // Fetch all watchlists for the logged-in user
   const fetchWatchlists = async () => {
     setLoading(true);
     setError("");
@@ -22,7 +21,6 @@ function WatchlistPage() {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      // For each watchlist, fetch movie details for each movieId in the list
       const watchlistsWithMovies = await Promise.all(
         res.data.map(async (watchlist) => {
           const movieDetails = await Promise.all(
@@ -41,7 +39,7 @@ function WatchlistPage() {
         })
       );
       setWatchlists(watchlistsWithMovies);
-    } catch (err) {
+    } catch {
       setError("Failed to load watchlists.");
     } finally {
       setLoading(false);
@@ -53,7 +51,6 @@ function WatchlistPage() {
     // eslint-disable-next-line
   }, []);
 
-  // Create a new watchlist
   const handleCreateWatchlist = async (e) => {
     e.preventDefault();
     if (!newWatchlistName.trim()) return;
@@ -65,12 +62,11 @@ function WatchlistPage() {
       );
       setNewWatchlistName("");
       fetchWatchlists();
-    } catch (err) {
+    } catch {
       setError("Failed to create watchlist.");
     }
   };
 
-  // Delete a watchlist
   const handleDeleteWatchlist = async (id) => {
     if (!window.confirm("Are you sure you want to delete this watchlist?")) return;
     try {
@@ -78,18 +74,16 @@ function WatchlistPage() {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
       fetchWatchlists();
-    } catch (err) {
+    } catch {
       setError("Failed to delete watchlist.");
     }
   };
 
-  // Start editing a watchlist name
   const startEditWatchlist = (id, name) => {
     setEditWatchlistId(id);
     setEditWatchlistName(name);
   };
 
-  // Save renamed watchlist
   const handleRenameWatchlist = async (id) => {
     if (!editWatchlistName.trim()) return;
     try {
@@ -101,87 +95,131 @@ function WatchlistPage() {
       setEditWatchlistId(null);
       setEditWatchlistName("");
       fetchWatchlists();
-    } catch (err) {
+    } catch {
       setError("Failed to rename watchlist.");
     }
   };
 
-  // Cancel editing watchlist name
   const cancelEditWatchlist = () => {
     setEditWatchlistId(null);
     setEditWatchlistName("");
   };
 
-  if (loading) return <div>Loading watchlists...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900 text-gray-200">
+        Loading watchlists...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900 text-red-500 font-semibold">
+        {error}
+      </div>
+    );
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto" }}>
-      <h2>Your Watchlists</h2>
+    <div className=" mx-auto p-6 bg-gray-900 text-gray-200 min-h-screen">
+      <div className="max-w-4xl mx-auto">
+      <h2 className="text-3xl mb-6 font-semibold">Your Watchlists</h2>
 
-      {/* Create Watchlist Form */}
-      <form onSubmit={handleCreateWatchlist} style={{ marginBottom: 20 }}>
+      <form onSubmit={handleCreateWatchlist} className="mb-6 flex space-x-3">
         <input
           value={newWatchlistName}
           onChange={e => setNewWatchlistName(e.target.value)}
           placeholder="New Watchlist Name"
           required
-          style={{ padding: "6px 10px", fontSize: 16 }}
-        />{" "}
-        <button type="submit" style={{ padding: "6px 14px", fontSize: 16 }}>Create</button>
+          className="flex-grow p-2 text-gray-900 rounded"
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
+        >
+          Create
+        </button>
       </form>
 
       {watchlists.length === 0 ? (
-        <p>No watchlists found.</p>
+        <p className="text-gray-400">No watchlists found.</p>
       ) : (
-        <ul>
+        <ul className="space-y-6">
           {watchlists.map((watchlist) => (
-            <li key={watchlist._id} style={{ marginBottom: 18 }}>
-              {/* Editable name or plain text with clickable link */}
+            <li key={watchlist._id} className="border border-gray-700 rounded p-4">
               {editWatchlistId === watchlist._id ? (
-                <>
+                <div className="flex items-center space-x-3 mb-4">
                   <input
                     value={editWatchlistName}
                     onChange={e => setEditWatchlistName(e.target.value)}
-                    style={{ fontSize: 16, padding: "4px 8px" }}
-                  />{" "}
-                  <button onClick={() => handleRenameWatchlist(watchlist._id)}>Save</button>{" "}
-                  <button onClick={cancelEditWatchlist}>Cancel</button>
-                </>
+                    className="flex-grow p-2 text-gray-900 rounded"
+                  />
+                  <button
+                    onClick={() => handleRenameWatchlist(watchlist._id)}
+                    className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 transition"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEditWatchlist}
+                    className="px-3 py-1 bg-gray-600 rounded hover:bg-gray-700 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
               ) : (
-                <>
-                  <Link to={`/watchlists/${watchlist._id}`} style={{ textDecoration: "none" }}>
-                    <strong style={{ fontSize: 18 }}>{watchlist.name}</strong>
-                  </Link>{" "}
-                  <button onClick={() => startEditWatchlist(watchlist._id, watchlist.name)}>Rename</button>{" "}
-                  <button onClick={() => handleDeleteWatchlist(watchlist._id)} style={{ color: "red" }}>Delete</button>
-                </>
+                <div className="flex items-center justify-between mb-4">
+                  <Link
+                    to={`/watchlists/${watchlist._id}`}
+                    className="text-xl font-semibold hover:underline"
+                  >
+                    {watchlist.name}
+                  </Link>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => startEditWatchlist(watchlist._id, watchlist.name)}
+                      className="px-3 py-1 bg-yellow-600 rounded hover:bg-yellow-700 transition"
+                    >
+                      Rename
+                    </button>
+                    <button
+                      onClick={() => handleDeleteWatchlist(watchlist._id)}
+                      className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               )}
-              {/* Movie previews */}
-              <ul style={{ marginTop: 8 }}>
-                {(watchlist.movieDetails && watchlist.movieDetails.length === 0) ? (
-                  <li>No movies in this watchlist.</li>
-                ) : (
-                  (watchlist.movieDetails || []).map((movie) => (
-                    <li key={movie.id} style={{ marginBottom: 6 }}>
-                      <Link to={`/movie/${movie.id}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", color: "inherit", fontWeight: 500 }}>
-                        {movie.poster_path && (
-                          <img
-                            src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
-                            alt={movie.title}
-                            style={{ verticalAlign: "middle", marginRight: 8, borderRadius: 4, boxShadow: "0 1px 2px #aaa" }}
-                          />
-                        )}
+
+              {watchlist.movieDetails && watchlist.movieDetails.length === 0 ? (
+                <p className="text-gray-400">No movies in this watchlist.</p>
+              ) : (
+                <ul className="grid grid-cols-3 gap-4">
+                  {(watchlist.movieDetails || []).map((movie) => (
+                    <li key={movie.id} className="flex items-center space-x-3">
+                      {movie.poster_path && (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+                          alt={movie.title}
+                          className="rounded shadow"
+                          loading="lazy"
+                        />
+                      )}
+                      <Link
+                        to={`/movie/${movie.id}`}
+                        className="font-medium hover:underline"
+                      >
                         {movie.title}
                       </Link>
                     </li>
-                  ))
-                )}
-              </ul>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
       )}
+    </div>
     </div>
   );
 }

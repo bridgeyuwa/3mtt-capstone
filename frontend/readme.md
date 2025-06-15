@@ -103,6 +103,17 @@ To deploy the frontend app:
    On platforms like Netlify or Vercel, define the `.env` values in the dashboard under project settings → environment variables.
 
 ---
+## CI/CD Integration
+
+This project uses Continuous Integration and Continuous Deployment (CI/CD) to automate builds and deployments the frontend.
+
+- **Platform**: Vercel
+- **Trigger**: Automatic deployment on every push to the `main` branch via GitHub Actions.
+- **Secrets**: Managed in GitHub repository settings.
+
+CI/CD ensures that all changes are automatically built and deployed without manual intervention.
+
+---
 
 ## Author
 

@@ -200,6 +200,14 @@ All endpoints follow REST principles. Auth-protected routes require a `Bearer <t
 
 ---
 
+## Local Development
+
+- Runs on `http://localhost:5000`
+- MongoDB can be local or remote (MongoDB Atlas)
+- Uses `nodemon` for live-reload in dev
+
+---
+
 ## Deployment
 
 You can deploy the backend to platforms like:
@@ -211,20 +219,15 @@ Ensure you configure environment variables on the hosting dashboard.
 
 ---
 
-## Local Development
+## CI/CD Integration
 
-- Runs on `http://localhost:5000`
-- MongoDB can be local or remote (MongoDB Atlas)
-- Uses `nodemon` for live-reload in dev
+This project uses Continuous Integration and Continuous Deployment (CI/CD) to automate builds and deployments for the backend.
 
----
+- **Platform**: Render
+- **Trigger**: Automatic deployment on push to the `main` branch using a Render Deploy Hook triggered by GitHub Actions.
+- **Secrets**: `RENDER_DEPLOY_HOOK_URL` stored in GitHub repository secrets.
 
-## Important Notes
-
-- CORS is currently open to all origins (for development)
-- No advanced input validation implemented
-- No centralized error handler yet — add for production use
-- PWA support is handled from the frontend
+CI/CD ensures that all changes are automatically built and deployed without manual intervention.
 
 ---
 

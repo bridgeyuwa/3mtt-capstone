@@ -2,7 +2,7 @@
 
 A full-stack movie recommendation platform built as a capstone project for the 3MTT Fellowship (Cohort 3). It allows users to discover, review, and manage movies while interacting with others socially.
 
-## 👨‍💻 Author
+## Author
 
 **Torkuma Jonathan Yuwa**  
 3MTT Fellow — Cohort 3  
@@ -10,16 +10,16 @@ Fellow ID: `FE/24/1478283066`
 GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
 ---
 
-## ✨ Key Features
+## Key Features
 
-- 🔐 JWT-based user authentication
-- 🔍 Search movies by title, genre, year
-- 🎞️ View detailed info, trailers, ratings
-- 🧠 Personalized movie recommendations
-- 📌 Save favorites and manage watchlists
-- 📝 Leave reviews and ratings
-- 🤝 Follow/unfollow other users
-- 🔄 Share and explore public watchlists
+- JWT-based user authentication
+- Search movies by title, genre, year
+- View detailed info, trailers, ratings
+- Personalized movie recommendations
+- Save favorites and manage watchlists
+- Leave reviews and ratings
+- Follow/unfollow other users
+- Share and explore public watchlists
 
 
 ## Project Structure
@@ -63,7 +63,7 @@ Both parts of the app can be deployed independently.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Torkuma Jonathan Yuwa**  
 3MTT Fellow — Cohort 3  

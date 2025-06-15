@@ -81,24 +81,34 @@ function Home({ token }) {
       </form>
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4">Results</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {movies.map(movie => (
-            <Link
-              key={movie.id}
-              to={`/movie/${movie.id}`}
-              className="bg-gray-800 rounded-md overflow-hidden hover:scale-105 transition-transform"
-            >
-              <img
-                src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
-                alt={movie.title}
-                className="w-full h-auto"
-              />
-              <div className="p-2 text-sm font-medium text-center">{movie.title} ({movie.release_date?.slice(0, 4)})</div>
-            </Link>
-          ))}
-        </div>
-      </section>
+  <h2 className="text-2xl font-semibold mb-4">Results</h2>
+
+  {movies.length === 0 ? (
+    <div className="text-center text-gray-400 text-lg">
+      No results found. Try searching or refining your filters.
+    </div>
+  ) : (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {movies.map(movie => (
+        <Link
+          key={movie.id}
+          to={`/movie/${movie.id}`}
+          className="bg-gray-800 rounded-md overflow-hidden hover:scale-105 transition-transform"
+        >
+          <img
+            src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
+            alt={movie.title}
+            className="w-full h-auto"
+          />
+          <div className="p-2 text-sm font-medium text-center">
+            {movie.title} ({movie.release_date?.slice(0, 4)})
+          </div>
+        </Link>
+      ))}
+    </div>
+  )}
+</section>
+
 
       <section>
         <h2 className="text-2xl font-semibold mb-4">Trending This Week</h2>

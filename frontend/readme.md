@@ -9,7 +9,7 @@ Frontend for the 3MTT Capstone Movie Recommendation App, built with React and Ta
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 - **React** v18.2.0 (via Create React App)
 - **Tailwind CSS** v3.3 (with `@tailwindcss/forms` plugin)
@@ -19,26 +19,26 @@ Frontend for the 3MTT Capstone Movie Recommendation App, built with React and Ta
 
 ---
 
-## 🚀 Features
+## Features
 
-### 🎥 Movie Discovery
+### Movie Discovery
 - Search movies by title, genre, or year
 - Filter by rating, release date, and popularity
 - View detailed movie information (trailers, overview, cast)
 - Get personalized movie recommendations
 
-### 👤 User Features
+### User Features
 - Register and log in with JWT auth
 - Save favorite movies
 - Create and manage custom watchlists
 - Rate and review movies
 - Profile dashboard for reviews and watchlists
 
-### 🌐 Social Features
+### Social Features
 - Follow and unfollow other users
 - View and share public watchlists
 
-### 🛠 Technical
+### Technical
 - React + TailwindCSS responsive UI
 - React Router navigation system
 - Axios integration with Express backend
@@ -46,7 +46,7 @@ Frontend for the 3MTT Capstone Movie Recommendation App, built with React and Ta
 
 ---
 
-## 📁 Pages (Located in `src/pages/`)
+## Pages (Located in `src/pages/`)
 
 | Page                 | Description                                                                 |
 |----------------------|-----------------------------------------------------------------------------|
@@ -62,7 +62,7 @@ Frontend for the 3MTT Capstone Movie Recommendation App, built with React and Ta
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 Create a `.env` file in the project root with the following:
 
@@ -73,7 +73,7 @@ REACT_APP_TMDB_API_KEY=your_tmdb_api_key
 
 ---
 
-## 🖥️ Local Development
+## Local Development
 
 ```bash
 npm install
@@ -82,7 +82,7 @@ npm run start   # or npm run dev
 
 ---
 
-## 🚢 Deployment
+## Deployment
 
 To deploy the frontend app:
 
@@ -104,7 +104,7 @@ To deploy the frontend app:
 
 ---
 
-## 🧑 Author
+## Author
 
 **Torkuma Jonathan Yuwa**  
 3MTT Fellow ID: **FE/24/1478283066**  

@@ -6,10 +6,11 @@ A full-stack movie recommendation platform built as a capstone project for the 3
 
 ## Project Structure
 
-```bash
+```
 3mtt-capstone/
 ├── backend/     # Express.js + MongoDB REST API
 └── frontend/    # React + Tailwind CSS PWA
+```
 
 ## Individual Project Docs
 

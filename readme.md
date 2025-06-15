@@ -4,12 +4,11 @@ A full-stack movie recommendation platform built as a capstone project for the 3
 
 ## Author
 
-**Torkuma Jonathan Yuwa**  
-3MTT Fellow — Cohort 3  
-Fellow ID: `FE/24/1478283066`  
-GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
-
-Demo: https://3mtt-capstone-kappa.vercel.app/
+- **Torkuma Jonathan Yuwa**  
+- 3MTT Fellow — Cohort 3  
+- Fellow ID: `FE/24/1478283066`  
+- GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
+- Demo: https://3mtt-capstone-kappa.vercel.app/
 ---
 
 ## Key Features
@@ -67,7 +66,7 @@ Both parts of the app can be deployed independently.
 
 ## Author
 
-**Torkuma Jonathan Yuwa**  
-3MTT Fellow — Cohort 3  
-Fellow ID: `FE/24/1478283066`  
-GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
+- **Torkuma Jonathan Yuwa**  
+- 3MTT Fellow — Cohort 3  
+- Fellow ID: `FE/24/1478283066`  
+- GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)

@@ -32,6 +32,8 @@ GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
 
 ## Individual Project Docs
 
+### To see detailed features and documentation for each
+
 - **Backend Service** (Node.js + Express + MongoDB)  
   See [`backend/README.md`](./backend/readme.md)
 

@@ -35,10 +35,10 @@ GitHub: [@bridgeyuwa](https://github.com/bridgeyuwa)
 ### To see detailed features and documentation for each
 
 - **Backend Service** (Node.js + Express + MongoDB)  
-  See [`backend/README.md`](./backend/readme.md)
+  See [`backend/readme.md`](./backend/readme.md)
 
 - **Frontend Client** (React + TailwindCSS)  
-  See [`frontend/README.md`](./frontend/readme.md)
+  See [`frontend/readme.md`](./frontend/readme.md)
 
 ---
 
